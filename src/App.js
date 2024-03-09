@@ -1,13 +1,13 @@
 import React, { Suspense } from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import routes from './routes';
-import './App.css';
-import '@radix-ui/themes/styles.css';
-import { Theme } from '@radix-ui/themes';
+import theme from './theme';
+import { ThemeProvider, CSSReset } from "@chakra-ui/core";
 
 function App() {
   return (
-    <Theme className="App">
+    <ThemeProvider theme={theme}>
+      <CSSReset />
       <Router>
         <Routes>
           {Object.keys(routes).map((path) => {
@@ -28,7 +28,7 @@ function App() {
           })}
         </Routes>
       </Router>
-    </Theme>
+    </ThemeProvider>
   );
 }
 
