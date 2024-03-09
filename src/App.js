@@ -1,24 +1,34 @@
-import logo from './logo.svg';
+import React, { Suspense } from 'react';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import routes from './routes';
 import './App.css';
+import '@radix-ui/themes/styles.css';
+import { Theme } from '@radix-ui/themes';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Theme className="App">
+      <Router>
+        <Routes>
+          {Object.keys(routes).map((path) => {
+            // 动态加载路由组件
+            const LazyComponent = routes[path];
+            return (
+              <Route
+                key={path}
+                path={path}
+                element={
+                  // 添加一个加载中的占位符
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <LazyComponent />
+                  </Suspense>
+                }
+              />
+            );
+          })}
+        </Routes>
+      </Router>
+    </Theme>
   );
 }
 
