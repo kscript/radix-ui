@@ -2,13 +2,25 @@ import React from 'react';
 import { Box, Flex, Button, Heading } from '@chakra-ui/core';
 import { FormList, NumberSlider, CheckboxControl, TextareaControl, useFormState } from '@/components/form';
 export default function MyApp() {
-  const [form, useValue] = useFormState({
+  const [form, useValue, setForm] = useFormState({
     partLimit: 1e3,
     requestLimit: 5,
     retry: 3,
     retain: true,
     copyright: ''
   })
+  const initData = () => {
+    if (window.chrome.storage) {
+      window.chrome.storage.local.get('localOptions', ({ localOptions }) => {
+        if (localOptions instanceof Object) {
+          setForm((prevValues) => ({
+            ...prevValues,
+            ...localOptions
+          }))
+        }
+      })
+    }
+  }
   const onSave = () => {
     if (window.chrome.storage) {
       window.chrome.storage.local.set({
@@ -45,6 +57,7 @@ export default function MyApp() {
       <Button size="sm" variantColor="teal" variant="solid" border={0} onClick={onSave}>保存插件配置</Button>
     ]
   ]
+  initData()
   return (
     <Box d="flex" alignItems="center" justifyContent="center" w="100%" h="100%">
       <Box bg="#f1f1f1" w="500px" p={12} borderRadius={5}>
