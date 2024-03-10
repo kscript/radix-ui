@@ -1,63 +1,23 @@
-import { useState } from 'react';
-import { Slider, SliderTrack, SliderFilledTrack, SliderThumb, Stack, Checkbox, FormControl, FormLabel, Textarea } from '@chakra-ui/core';
-
-export const mergeAttrs = (defaultAttrs, attrs = {}) => {
-  return Object.assign({},
-    defaultAttrs instanceof Object ? defaultAttrs : {},
-    attrs instanceof Object ? attrs : {}
-  )
-}
+import { Slider, SliderTrack, SliderFilledTrack, SliderThumb, Stack, Input, Checkbox, FormControl, FormLabel, Textarea } from '@chakra-ui/core';
+import { mergeAttrs, useDateState, formatKey } from '@/utils'
 
 const FormListAttrs = {
   py: 2,
   key: 'id'
 }
-export const FormList = (fields, attrs = FormListAttrs) => {
-  const { key, ...mergedAttrs } = mergeAttrs(FormListAttrs, attrs)
-  return fields.map((item, index) => FormItemWrapper({ key: mergedAttrs[key] || mergedAttrs.uuid || index, ...mergedAttrs }, ...item))
+
+export {
+  useDateState
 }
 
-/**
- * @param {object} initialState useState初始值
- * @param {boolean=} modify 是否要对setState包装修改
- * @returns [state, useValue, setState]
- * @desc 
- * modify为false时，useValue调用的也是setState
- * @example
- * const [form, useValue] = useFormState({ age: 18 })
- * const age = useValue(name)
- * age(20) // 设置
- * console.log(age()) // 获取
- */
-export const useFormState = (initialState, modify = true) => {
-  const [state, setState] = useState(initialState)
-  /**
-   * - modify为true时, 传入要使用state上的哪个值
-   * - modify为false时, 参数与setState一致
-   */
-  const useValue = (...rest) => {
-    if (!modify) {
-      return setState(...rest)
-    }
-    const [name] = rest
-    // 存取值
-    return (...rest) => {
-      if (rest.length) {
-        const [value] = rest
-        setState((prevValues) => ({
-          ...prevValues,
-          [name]: value
-        }))
-      }
-      return state[name]
-    }
-  }
-  return [state, useValue, setState]
+export const FormList = (fields, attrs = FormListAttrs) => {
+  const { key, ...mergedAttrs } = mergeAttrs(FormListAttrs, attrs)
+  return fields.map((item, index) => FormItemWrapper({ key: formatKey(key, index, mergedAttrs), ...mergedAttrs }, ...item))
 }
 
 export const FormItem = (label, value, attrs = {}) => {
   return <FormControl {...attrs}>
-    { label ? <FormLabel> {label} </FormLabel> : null }
+    { label ? typeof label === 'function' ? label() : <FormLabel> {label} </FormLabel> : null }
     { value }
   </FormControl>
 }
@@ -105,6 +65,13 @@ export const CheckboxControl = (payload, attrs = CheckboxControlAttrs) => {
       {label}
     </Checkbox>
   </Stack>
+}
+
+const InputControlAttrs = {
+}
+export const InputControl = (payload, attrs = InputControlAttrs) => {
+  const mergedAttrs = mergeAttrs(CheckboxControlAttrs, attrs)
+  return <Input {...mergedAttrs} defaultValue={payload()} onChange={(e) => payload(e.target.value)} />
 }
 
 const TextareaControlAttrs = {

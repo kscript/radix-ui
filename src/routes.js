@@ -1,4 +1,4 @@
-const pagesContext = require.context('./pages', true, /\.js$/);
+const pagesContext = require.context('./pages', true, /index\.js$/);
 
 // 获取所有页面的keys
 const pageKeys = pagesContext.keys();

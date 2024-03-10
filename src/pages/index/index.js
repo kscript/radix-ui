@@ -1,69 +1,25 @@
 import React from 'react';
-import { Box, Flex, Button, Heading } from '@chakra-ui/core';
-import { FormList, NumberSlider, CheckboxControl, TextareaControl, useFormState } from '@/components/form';
+import { Box, Flex, Heading } from '@chakra-ui/core';
+import { BaseSettings } from './base'
+// import { WebsiteSettings } from './website'
+// import { useTabs } from '@/components/tabs'
 export default function MyApp() {
-  const [form, useValue, setForm] = useFormState({
-    partLimit: 1e3,
-    requestLimit: 5,
-    retry: 3,
-    retain: true,
-    copyright: ''
-  })
-  const initData = () => {
-    if (window.chrome.storage) {
-      window.chrome.storage.local.get('localOptions', ({ localOptions }) => {
-        if (localOptions instanceof Object) {
-          setForm((prevValues) => ({
-            ...prevValues,
-            ...localOptions
-          }))
-        }
-      })
-    }
-  }
-  const onSave = () => {
-    if (window.chrome.storage) {
-      window.chrome.storage.local.set({
-        localOptions: form
-      }, () => {
-        alert('保存成功')
-      })
-    }
-  }
-  const fields = [
-    [
-      '请求并发个数',
-      NumberSlider(useValue('requestLimit'))
-    ],
-    [
-      '请求重试次数',
-      NumberSlider(useValue('retry'))
-    ],
-    [
-      '分片文件个数',
-      NumberSlider(useValue('partLimit'), { max: 5e3 })
-    ],
-    [
-      CheckboxControl(useValue('retain'), { label: '保留插件版权信息' })
-    ],
-    [
-      '自定义版权信息(markdown)',
-      TextareaControl(useValue('copyright'), {
-        disabled: form.retain
-      })
-    ],
-    [
-      undefined,
-      <Button size="sm" variantColor="teal" variant="solid" border={0} onClick={onSave}>保存插件配置</Button>
-    ]
-  ]
-  initData()
+  // const [Tabs] = useTabs({
+  //   tabs: [
+  //     '基础配置',
+  //     '网站配置',
+  //   ],
+  //   panels: [
+  //     [<BaseSettings/>, { mt: 2 }],
+  //     [<WebsiteSettings />, { mt: 2 }]
+  //   ]
+  // })
   return (
     <Box d="flex" alignItems="center" justifyContent="center" w="100%" h="100%">
       <Box bg="#f1f1f1" w="500px" p={12} borderRadius={5}>
-        <Heading as="h3" my={2} size="lg" textAlign="center"> 插件配置 </Heading>
+        <Heading as="h3" mb={5} size="lg" textAlign="center"> 插件配置 </Heading>
         <Flex direction="column" gap="5">
-          {FormList(fields)}
+          <BaseSettings></BaseSettings>
         </Flex>
       </Box>
     </Box>
