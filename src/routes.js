@@ -24,5 +24,6 @@ pageKeys.forEach((key) => {
 if(routes['/index']) {
   routes['/'] = routes['/index'];
   routes['/index.html'] = routes['/index'];
+  routes['/option.html'] = routes['/index'];
 }
 export default routes
