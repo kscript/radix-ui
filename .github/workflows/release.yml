@@ -22,6 +22,7 @@ jobs:
       - name: Install and Build
         run: |
           npm ci
+          npm install -g react-app-rewired
           npm run build
       - name: Upload Artifacts
         uses: actions/upload-artifact@v1
