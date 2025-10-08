@@ -2,12 +2,11 @@ import React, { Suspense } from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import routes from './routes';
 import theme from './theme';
-import { ThemeProvider, CSSReset } from "@chakra-ui/core";
+import { ChakraProvider } from "@chakra-ui/react";
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CSSReset />
+    <ChakraProvider value={theme.system}>
       <Router>
         <Routes>
           {Object.keys(routes).map((path) => {
@@ -28,7 +27,7 @@ function App() {
           })}
         </Routes>
       </Router>
-    </ThemeProvider>
+    </ChakraProvider>
   );
 }
 
