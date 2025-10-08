@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
-import { Button } from '@chakra-ui/core';
-import { FormList, InputControl, useDateState } from '@/components/form';
+import React, { useEffect, useState } from 'react'
+import { Button, Grid } from '@chakra-ui/react'
+import { FormList, InputControl, useDateState, FormRequired, FormSubmit } from '@/components/form'
+import { useValidate } from '@/utils'
 import { useChromeStorage as chromeStorage } from '@/utils/chrome'
 // origin: 'juejin',
 // // 处理链接
@@ -19,21 +20,43 @@ import { useChromeStorage as chromeStorage } from '@/utils/chrome'
 //   unpack: '',
 //   tag: '.article-end .tag-list .tag-item'
 // }
-const [getStorage, setStorage] = chromeStorage('websiteOptions')
-const onSaveStorage = (storage) => {
-  setStorage(storage, () => {
-    alert('保存成功')
+
+const [getStorage, setStorage] = chromeStorage('websites')
+
+const [onSaveStorage] = FormSubmit((form, props, { rules, validator } = {}) => {
+  const {
+    origin = '',
+    hosts = '',
+    ...selectors
+  } = form
+  const [valid, messages] = useValidate(form, rules)
+  if (!valid) {
+    typeof validator === 'function' && validator(messages)
+    return
+  }
+  return getStorage().then((storage = {}) => {
+    storage[props.name || origin] = {
+      origin,
+      hosts: hosts.split(','),
+      selectors,
+      timestamp: Date.now()
+    }
+    return setStorage(storage)
+  }).then(valid => {
+    valid && alert(props.name ? '保存成功' : '添加成功')
   })
-}
-const initData = ({
-  setForm
+})
+const initData = (setForm, {
+  props = {}
 }) => {
-  getStorage((storage) => {
-    setForm((prevValues) => ({
-      ...prevValues,
-      ...storage
-    }))
-  })
+  if (props.name) {
+    getStorage((storage = {}) => {
+      setForm((prevValues) => ({
+        ...prevValues,
+        ...storage[props.name]
+      }))
+    })
+  }
 }
 const getPayload = (key) => {
   return {
@@ -48,50 +71,68 @@ const getPayload = (key) => {
     }
   }
 }
-export const WebsiteSettings = () => {
+
+export const WebsiteSettings = (props) => {
   const [form, useValue, setForm] = useDateState({
   })
+  const [errors, setErrors] = useState(null)
   const attrs = { size: 'sm', flex: 'none', width: 280 }
+  const rules = {
+    origin: [
+      { required: true, message: '请填写站点标识' }
+    ],
+    hosts: [
+      { required: true, message: '请填写域名匹配规则' }
+    ],
+    body: [
+      { required: true, message: '请填写内容选择器' }
+    ]
+  }
+  const validator = (messages) => {
+    setErrors(messages)
+  }
+  const mergeAttrs = (data) =>  Object.assign({}, attrs, data instanceof Object ? data : {})
   const fields = [
     [
-      '站点标识',
-      InputControl(useValue('origin'), Object.assign({}, attrs, { placeholder: '' }))
+      FormRequired('站点标识'),
+      InputControl(useValue('origin'), mergeAttrs({ prop: 'origin', placeholder: '' }))
     ],
     [
-      '域名匹配',
-      InputControl(useValue('hosts'), Object.assign({}, attrs, { placeholder: '数组形式, 支持正则和字符串' }))
+      FormRequired('域名匹配规则'),
+      InputControl(useValue('hosts'), mergeAttrs({ prop: 'hosts', placeholder: '数组形式, 逗号分割, 支持正则和字符串' }))
     ],
     [
       '标题选择器',
-      InputControl(useValue('title', getPayload('title')), attrs)
+      InputControl(useValue('title', getPayload('title')), mergeAttrs({ prop: 'title', placeholder: '默认取页面标题' }))
     ],
     [
-      '内容选择器',
-      InputControl(useValue('body', getPayload('body')), attrs)
+      FormRequired('内容选择器'),
+      InputControl(useValue('body', getPayload('body', '.markdown-body')), mergeAttrs({ prop: 'body' }))
     ],
     [
       '用户名选择器',
-      InputControl(useValue('userName', getPayload('userName')), attrs)
+      InputControl(useValue('userName', getPayload('userName')), mergeAttrs({ prop: 'userName' }))
     ],
     [
       '用户主页选择器',
-      InputControl(useValue('userLink', getPayload('userLink')), attrs)
+      InputControl(useValue('userLink', getPayload('userLink')), mergeAttrs({ prop: 'userLink' }))
     ],
     [
       '标签选择器',
-      InputControl(useValue('tag', getPayload('tag')), attrs)
+      InputControl(useValue('tag', getPayload('tag')), mergeAttrs({ prop: 'tag' }))
     ],
     [
       '屏蔽标签选择器',
-      InputControl(useValue('invalid', getPayload('invalid')), attrs)
+      InputControl(useValue('invalid', getPayload('invalid')), mergeAttrs({ prop: 'invalid' }))
     ],
     [
-      undefined,
-      <Button size="sm" variantColor="teal" variant="solid" border={0} onClick={() => onSaveStorage(form)}>新增网站</Button>
+      <Button size="sm" variantColor="teal" variant="solid" border={0} onClick={() => onSaveStorage(form, props, { rules, validator })}>新增网站</Button>
     ]
   ]
   useEffect(() => {
-    initData({setForm})
-  })
-  return FormList(fields, { display: 'flex', justifyContent: 'space-between' })
+    initData(setForm, { props })
+  }, [props])
+  return <Grid templateColumns="repeat(2, 1fr)" gap={1}>
+    {FormList(fields, { errors: errors })}
+  </Grid>
 }

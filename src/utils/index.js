@@ -25,7 +25,7 @@ export const formatItem = (component, attrs) => {
  * @param {Component} Component 组件 (配合组件属性)
  * @returns 
  */
-export const formatList = (components, Component) => {
+export const formatList = (Component, components) => {
   const formated = (Array.isArray(components) ? components : [components]).map(item => {
     if (Array.isArray(item)) {
       return formatItem(...item)
@@ -33,7 +33,7 @@ export const formatList = (components, Component) => {
       if (isValidElement(item)) {
         return formatItem(item, {})
       }
-      const { component, attrs } = item
+      const { component, attrs = {} } = item
       return formatItem(component, attrs)
     } else if (![null, undefined, false].includes(item)) {
       return formatItem(item, {})
@@ -98,4 +98,41 @@ export const useDateState = (initialState, modify = true) => {
     }
   }
   return [state, useValue, setState]
+}
+
+export const formatDate = (date, format = 'yyyy-MM-dd hh:mm:ss') => {
+  return new Date(date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })
+}
+
+export const useValidate = (data, rules) => {
+  const messages = {}
+  if (rules instanceof Object) {
+    Object.keys(rules).forEach(key => {
+      if (Array.isArray(rules[key])) {
+        rules[key].forEach((item, index) => {
+          // 默认必填
+          if (item.required) {
+            if ([null, undefined, ''].includes(data[key])) {
+              messages[key] = messages[key] || []
+              messages[key][index] = item.message
+            }
+          // 正则验证
+          } else if (item.pattern) {
+            if (!new RegExp(item.pattern).test(data[key])) {
+              messages[key] = messages[key] || []
+              messages[key][index] = item.message
+            }
+          // 自定义验证
+          } else if (typeof item.validate === 'function') {
+            if (!item.validate(data[key])) {
+              messages[key] = messages[key] || []
+              messages[key][index] = item.message
+            }
+          }
+        })
+      }
+    })
+    return [Object.keys(messages).length === 0, messages]
+  }
+  return [true, {}]
 }
