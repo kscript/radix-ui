@@ -37,6 +37,6 @@ export const BaseSettings = () => {
         ...storage
       }))
     })
-  }, [])
+  }, [setForm])
   return FormList(fields)
 }

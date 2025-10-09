@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Grid } from '@chakra-ui/react'
-import { FormList, InputControl, useDateState, FormRequired, FormSubmit } from '@/components/form'
+import { FormList, InputControl, useDateState, FormSubmit } from '@/components/form'
 import { useValidate } from '@/utils'
 import { useChromeStorage as chromeStorage } from '@/utils/chrome'
 // origin: 'juejin',
@@ -35,7 +35,7 @@ const [onSaveStorage] = FormSubmit((form, props, { rules, validator } = {}) => {
     return
   }
   return getStorage().then((storage = {}) => {
-    storage[props.name || origin] = {
+    storage[props.context.name || origin] = {
       origin,
       hosts: hosts.split(','),
       selectors,
@@ -43,17 +43,17 @@ const [onSaveStorage] = FormSubmit((form, props, { rules, validator } = {}) => {
     }
     return setStorage(storage)
   }).then(valid => {
-    valid && alert(props.name ? '保存成功' : '添加成功')
+    valid && alert(props.context.name ? '保存成功' : '添加成功')
   })
 })
 const initData = (setForm, {
   props = {}
 }) => {
-  if (props.name) {
+  if (props.context.name) {
     getStorage((storage = {}) => {
       setForm((prevValues) => ({
         ...prevValues,
-        ...storage[props.name]
+        ...storage[props.context.name]
       }))
     })
   }
@@ -94,20 +94,20 @@ export const WebsiteSettings = (props) => {
   const mergeAttrs = (data) =>  Object.assign({}, attrs, data instanceof Object ? data : {})
   const fields = [
     [
-      FormRequired('站点标识'),
-      InputControl(useValue('origin'), mergeAttrs({ prop: 'origin', placeholder: '' }))
+      '站点标识',
+      InputControl(useValue('origin'), mergeAttrs({ prop: 'origin', placeholder: '', required: true }))
     ],
     [
-      FormRequired('域名匹配规则'),
-      InputControl(useValue('hosts'), mergeAttrs({ prop: 'hosts', placeholder: '数组形式, 逗号分割, 支持正则和字符串' }))
+      '域名匹配规则',
+      InputControl(useValue('hosts'), mergeAttrs({ prop: 'hosts', placeholder: '数组形式, 逗号分割, 支持正则和字符串', required: true }))
     ],
     [
       '标题选择器',
       InputControl(useValue('title', getPayload('title')), mergeAttrs({ prop: 'title', placeholder: '默认取页面标题' }))
     ],
     [
-      FormRequired('内容选择器'),
-      InputControl(useValue('body', getPayload('body', '.markdown-body')), mergeAttrs({ prop: 'body' }))
+      '内容选择器',
+      InputControl(useValue('body', getPayload('body', '.markdown-body')), mergeAttrs({ prop: 'body', required: true }))
     ],
     [
       '用户名选择器',
@@ -126,12 +126,14 @@ export const WebsiteSettings = (props) => {
       InputControl(useValue('invalid', getPayload('invalid')), mergeAttrs({ prop: 'invalid' }))
     ],
     [
-      <Button size="sm" variantColor="teal" variant="solid" border={0} onClick={() => onSaveStorage(form, props, { rules, validator })}>新增网站</Button>
+      <Button size="sm" variantColor="teal" variant="solid" border={0} onClick={() => onSaveStorage(form, props, { rules, validator })}>
+        { props.context.name ? '修改' : '新增' }配置
+      </Button>
     ]
   ]
   useEffect(() => {
     initData(setForm, { props })
-  }, [props])
+  }, [props, props.context?.name, setForm])
   return <Grid templateColumns="repeat(2, 1fr)" gap={1}>
     {FormList(fields, { errors: errors })}
   </Grid>

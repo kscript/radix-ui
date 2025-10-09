@@ -1,8 +1,7 @@
-import { Slider, HStack, Input, Checkbox, Field, Textarea, Button, Text } from '@chakra-ui/react';
+import { Slider, HStack, Input, Checkbox, Field, Textarea, Button } from '@chakra-ui/react';
 import { mergeAttrs, useDateState, formatKey } from '@/utils'
 import theme from '@/theme'
 const FormListAttrs = {
-  py: 2,
   key: 'id'
 }
 
@@ -41,14 +40,19 @@ export const FormList = (fields, attrs = FormListAttrs) => {
 }
 
 export const FormItem = (label, value, attrs = {}) => {
-  const width = ((value || {}).props || {}).width || 'full'
-  const errors = attrs.errors && ((value || {}).props || {}).prop ? attrs.errors[value.props.prop] : null
-  const Error = errors ? <Text as="span" textStyle="xs" style={{ color: 'red' }}>{errors.find(Boolean)}</Text> : null
+  const { props = {} } = value || {}
+  const width = props.width || 'full'
+  const errors = attrs.errors && props.prop ? attrs.errors[props.prop] : null
+  const Error = <Field.HelperText h={5}><Field.ErrorText>{errors && errors.find(Boolean)}</Field.ErrorText></Field.HelperText>
+  const required = props.required || attrs.required
+  Object.assign(attrs, { invalid: !!errors, required })
   return <Field.Root {...attrs}>
-    { label ? typeof label === 'function' ? label() : <Field.Label display="flex" alignItems="center" justifyContent="space-between" width={width}>
-      <span>{label}</span> {Error}
-      </Field.Label> : Error }
+    <Field.Label width={width}>
+      <Field.RequiredIndicator />
+      { label && typeof label === 'function' ? label() : label }
+    </Field.Label>
     { value }
+    { Error }
   </Field.Root>
 }
 
@@ -104,10 +108,16 @@ export const CheckboxControl = (payload, attrs = CheckboxControlAttrs) => {
 }
 
 const InputControlAttrs = {
+  autocomplete: 'off'
 }
 export const InputControl = (payload, attrs = InputControlAttrs) => {
   const mergedAttrs = mergeAttrs(CheckboxControlAttrs, attrs)
-  return <Input {...mergedAttrs} defaultValue={payload()} onChange={(e) => payload(e.target.value)} />
+  // return <Field.Root invalid={!!mergedAttrs.errorText}>
+  //   {mergedAttrs.label && <Field.Label>{mergedAttrs.label}</Field.Label>}
+  //   <Input  {...mergedAttrs} defaultValue={payload()} onChange={(e) => payload(e.target.value)} />
+  //   {mergedAttrs.errorText && <Field.ErrorText>{mergedAttrs.errorText}</Field.ErrorText>}
+  // </Field.Root>
+  return <Input  {...mergedAttrs} defaultValue={payload()} onChange={(e) => payload(e.target.value)} />
 }
 
 const TextareaControlAttrs = {

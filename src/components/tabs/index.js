@@ -15,17 +15,23 @@ export const useTabs = ({
     panel: panelOptions = {},
     ...rest
   } = options
-  return [() => <Tabs.Root {...Object.assign({
-    defaultValue: 0,
-    colorPalette: theme.tabs.colorPalette,
-    variant: 'outline'
-  }, rest)}>
-    <Tabs.List {...tabOptions}>
-      {formatList(Tabs.Trigger, mapValue(tabs))}
-    </Tabs.List>
+  return [
+    (props = {}) => {
+      const mergeAttrs = Object.assign({
+        colorPalette: theme.tabs.colorPalette,
+        variant: 'outline'
+      }, rest, {
+        defaultValue: props.context?.tab || 0
+      })
+      return <Tabs.Root {...mergeAttrs}>
+        <Tabs.List {...tabOptions}>
+          {formatList(Tabs.Trigger, mapValue(tabs))}
+        </Tabs.List>
 
-    <Tabs.ContentGroup {...panelOptions}>
-      {formatList(Tabs.Content, mapValue(panels))}
-    </Tabs.ContentGroup>
-  </Tabs.Root>]
+        <Tabs.ContentGroup {...panelOptions}>
+          {formatList(Tabs.Content, mapValue(panels))}
+        </Tabs.ContentGroup>
+      </Tabs.Root>
+    }
+  ]
 }
